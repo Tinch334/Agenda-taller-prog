@@ -1,0 +1,235 @@
+--------------------Ejemplo de slist_longitud y slist_concatenar
+#include <stdio.h>
+#include <stdlib.h>
+#include "slist.h"
+
+static void imprimir_entero(int dato) {
+    printf("%d ", dato);
+}
+
+int main(int argc, char *argv[]) {
+    SList lista = slist_crear();
+    SList segundaLista = slist_crear();
+
+    lista = slist_agregar_inicio(lista, 3);
+    lista = slist_agregar_inicio(lista, 2);
+    lista = slist_agregar_inicio(lista, 1);
+    lista = slist_agregar_final(lista, 4);
+
+    segundaLista = slist_agregar_inicio(segundaLista, 5);
+    segundaLista = slist_agregar_inicio(segundaLista, 6);
+    segundaLista = slist_agregar_inicio(segundaLista, 7);
+
+    printf("Primera lista: ");
+    slist_recorrer(lista, imprimir_entero);
+    printf("\nLongitud de la primera lista: %d\n", slist_longitud(lista));
+
+    printf("Segunda lista: ");
+    slist_recorrer(segundaLista, imprimir_entero);
+    printf("\nLongitud de la segunda lista: %d\n", slist_longitud(segundaLista));
+
+    lista = slist_concatenar(lista, segundaLista);
+    printf("Las listas concatenadas: ");
+    slist_recorrer(lista, imprimir_entero);
+    printf("\n");
+
+    slist_destruir(lista);
+    //slist_destruir(segundaLista); - No es necesario borrar la segunda lista porque como esta concatenada con la primera y es una lista enlazada al borrarla se borran tambien los elementos de la segunda.
+
+    return 0;
+}
+--------------------Ejemplo de slist_insertar y slist_eliminar
+#include <stdio.h>
+#include <stdlib.h>
+#include "slist.h"
+
+static void imprimir_entero(int dato) {
+    printf("%d ", dato);
+}
+
+int main(int argc, char *argv[]) {
+    SList lista = slist_crear();
+
+    lista = slist_agregar_inicio(lista, 3);
+    lista = slist_agregar_inicio(lista, 2);
+    lista = slist_agregar_inicio(lista, 1);
+    lista = slist_agregar_final(lista, 4);
+
+    printf("Lista: ");
+    slist_recorrer(lista, imprimir_entero);
+
+    slist_insertar(&lista, 1, 10);
+    printf("\n\nLista luego de insertar un elemento en el medio: ");
+    slist_recorrer(lista, imprimir_entero);
+
+    slist_insertar(&lista, slist_longitud(lista), 20);
+    printf("\n\nLista luego de insertar un elemento al final: ");
+    slist_recorrer(lista, imprimir_entero);
+
+    slist_insertar(&lista, 0, 30);
+    printf("\n\nLista luego de insertar un elemento al principio: ");
+    slist_recorrer(lista, imprimir_entero);
+    printf("\n");
+
+    slist_eliminar(&lista, 1);
+    printf("\n\nLista luego de eliminar un elemento en el medio: ");
+    slist_recorrer(lista, imprimir_entero);
+    
+    slist_eliminar(&lista, 0);
+    printf("\n\nLista luego de eliminar el primer elemento: ");
+    slist_recorrer(lista, imprimir_entero);
+
+    slist_eliminar(&lista, slist_longitud(lista));
+    printf("\n\nLista luego de eliminar el ultimo elemento: ");
+    slist_recorrer(lista, imprimir_entero);
+    printf("\n");
+
+
+    slist_destruir(lista);
+
+    return 0;
+}
+--------------------Ejemplo de slist_contiene y slist_indice
+#include <stdio.h>
+#include <stdlib.h>
+#include "slist.h"
+
+static void imprimir_entero(int dato) {
+    printf("%d ", dato);
+}
+
+int main(int argc, char *argv[]) {
+    SList lista = slist_crear();
+    int elem = 3;
+    int elem2 = 10;
+
+    lista = slist_agregar_inicio(lista, 3);
+    lista = slist_agregar_inicio(lista, 2);
+    lista = slist_agregar_inicio(lista, 1);
+    lista = slist_agregar_final(lista, 4);
+
+    printf("Lista: ");
+    slist_recorrer(lista, imprimir_entero);
+
+    printf("\n\nLa lista %scontiene al elemento %d", (slist_contiene(lista, elem) == 0 ? "no ": ""), elem);
+    printf("\nLa lista %scontiene al elemento %d\n", (slist_contiene(lista, elem2) == 0 ? "no ": ""), elem2);
+
+    printf("\n\nEl indice de %d es %d", elem, slist_indice(lista, elem));
+    printf("\nEl indice de %d es %d\n", elem2, slist_indice(lista, elem2));
+
+    slist_destruir(lista);
+
+    return 0;
+}
+--------------------Ejemplo de slist_intersecar y slist_intersecar_custom
+#include <stdio.h>
+#include <stdlib.h>
+#include "slist.h"
+
+static void imprimir_entero(int dato) {
+    printf("%d ", dato);
+}
+
+//typedef int (*FuncionComparacion) (int dato1, int dato2);
+static int comp_normal(int dato1, int dato2){
+    if (dato1 == dato2)
+        return 1;
+    else
+        return 0;
+}
+
+static int comp_especial(int dato1, int dato2){
+    if (dato1 > dato2)
+        return 1;
+    else
+        return 0;
+}
+
+int main(int argc, char *argv[]) {
+    SList lista = slist_crear();
+    SList lista2 = slist_crear();
+    SList interseccion = slist_crear();
+
+    lista = slist_agregar_inicio(lista, 3);
+    lista = slist_agregar_inicio(lista, 2);
+    lista = slist_agregar_inicio(lista, 1);
+    lista = slist_agregar_final(lista, 4);
+    lista = slist_agregar_final(lista, 2);
+
+    lista2 = slist_agregar_inicio(lista2, 10);
+    lista2 = slist_agregar_inicio(lista2, 2);
+    lista2 = slist_agregar_inicio(lista2, 7);
+    lista2 = slist_agregar_inicio(lista2, 2);
+    lista2 = slist_agregar_inicio(lista2, 1);
+
+
+    printf("Primera lista: ");
+    slist_recorrer(lista, imprimir_entero);
+
+    printf("\nSegunda lista: ");
+    slist_recorrer(lista2, imprimir_entero);
+
+    printf("\n\nLa interseccion de ambas listas es: ");
+    interseccion = slist_intersecar(lista, lista2); 
+    slist_recorrer(interseccion, imprimir_entero);
+    printf("\n");
+
+    printf("\n\nLa interseccion custom normal de ambas listas es: ");
+    interseccion = slist_intersecar_custom(lista, lista2, comp_normal, 0); 
+    slist_recorrer(interseccion, imprimir_entero);
+    printf("\n");
+
+    printf("\n\nLa interseccion custom especial de ambas listas es: ");
+    interseccion = slist_intersecar_custom(lista, lista2, comp_especial, 1); 
+    slist_recorrer(interseccion, imprimir_entero);
+    printf("\n");
+
+    slist_destruir(lista);
+    slist_destruir(lista2);
+    slist_destruir(interseccion);
+
+    return 0;
+}
+--------------------Ejemplo de slist_reverso y slist_intercalar
+#include <stdio.h>
+#include <stdlib.h>
+#include "slist.h"
+
+static void imprimir_entero(int dato) {
+    printf("%d ", dato);
+}
+
+int main(int argc, char *argv[]) {
+    SList lista = slist_crear();
+    SList lista2 = slist_crear();
+    SList inversa = slist_crear();
+    SList intercalada = slist_crear();
+
+    lista = slist_agregar_inicio(lista, 3);
+    lista = slist_agregar_inicio(lista, 2);
+    lista = slist_agregar_inicio(lista, 1);
+    lista = slist_agregar_final(lista, 4);
+
+    lista2 = slist_agregar_final(lista2, 5);
+    lista2 = slist_agregar_final(lista2, 6);
+    lista2 = slist_agregar_final(lista2, 7);
+    lista2 = slist_agregar_final(lista2, 8);
+    lista2 = slist_agregar_final(lista2, 9);
+
+
+    printf("\nLista: ");
+    slist_recorrer(lista, imprimir_entero);
+
+    printf("\n\nLista invertida: ");
+    inversa = slist_reverso(lista);
+    slist_recorrer(inversa, imprimir_entero);
+
+    printf("\n\nLista intecalada con la segunda lista: ");
+    intercalada = slist_intercalar(lista, lista2);
+    slist_recorrer(intercalada, imprimir_entero);
+    printf("\n");
+
+    slist_destruir(lista);
+
+    return 0;
+}
