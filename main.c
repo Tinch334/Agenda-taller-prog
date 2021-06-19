@@ -1,6 +1,9 @@
 /*
     HECHO POR JUAN IGNACIO BERTONI Y MARTÍN GOÑI
+    CURSO: 5TO INFO
 */
+
+//DISCLAIMER: todavia no probe casos retorcidos en mis funciones (1,2,5,6)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +44,37 @@ void imprimirContacto(Contacto contacto) {
     printf("\nMail: %s - Telegram: %s - Instagram: %s\n\n", contacto.mail, contacto.aliasTelegram, contacto.usuarioInstagram);
 }
 
+Contacto askForData(Contacto contactoACrear)
+{
+    printf("Ingresar nombre del nuevo contacto\n");
+    ingresarString(&(contactoACrear.nombre));
+    printf("Direccion\n");
+    ingresarString(&(contactoACrear.direccion));
+    printf("Telefono\n");
+    ingresarString(&(contactoACrear.telefono));
+    printf("Mail\n");
+    ingresarString(&(contactoACrear.mail));
+    printf("Alias telegram\n");
+    ingresarString(&(contactoACrear.aliasTelegram));
+    printf("ig de la minita\n");
+    ingresarString(&(contactoACrear.usuarioInstagram));
+
+    return contactoACrear;
+}
+
+int confirmation(int arg)
+{
+    int conf=0;
+    printf("Esta seguro que quiere eliminar %s? (1=si, 0=no)\n", (arg) ? "el contacto" : "toda la agenda");
+    scanf("%d", &conf);
+    while(conf>1 || conf<0){
+        printf("Intentalo nuevamente.\n");
+        scanf("%d", &conf);
+    } 
+   
+    return conf;
+}
+
 //FUNCIONES DEL TP
 
 int menu() {
@@ -63,7 +97,30 @@ int menu() {
     return opcion;
 }
 
+/*1*/
+SList nuevoContacto(SList agenda)    
+{
+    Contacto contactoNuevo;
+    contactoNuevo = askForData(contactoNuevo);
+    agenda = slist_agregar_final(agenda,contactoNuevo);
+    return agenda;
+}
 
+/*2*/
+void muestraContacto(SList agenda)
+{
+    SList nodo = agenda;
+    int index=0;
+    printf("\n\nA g e n d a\n\n");
+    for(;nodo!= NULL;nodo = nodo->sig)
+    {
+        printf("Contacto %d:\n",++index);
+        imprimirContacto(nodo->contacto);
+    }
+    getchar(); /*espera a que ingreses enter*/
+}
+
+/*3*/
 void buscaContactosNombre(SList listaContactos) {
     SList nodo = listaContactos;
     char *nombreBuscar, aux[255];
@@ -92,7 +149,7 @@ void buscaContactosNombre(SList listaContactos) {
     getchar();
 }
 
-
+/*4*/
 void buscaContactosTelefono(SList listaContactos) {
     SList nodo = listaContactos;
     char *telefonoBuscar, aux[255];
@@ -113,6 +170,33 @@ void buscaContactosTelefono(SList listaContactos) {
     printf("Presione enter para volver al menu");
     getchar();
 }
+/*5 falta cubrir el caso si el nombre que se quiere borrar no existe*/
+SList eliminarContactoNombre(SList agenda)
+{
+    int index=0;
+    char* nombreDeContactoABorrar;
+    SList nodo = agenda;
+    printf("Ingresar contacto a borrar\n");
+    ingresarString(&nombreDeContactoABorrar);
+    for(; nodo != NULL; nodo=nodo->sig,index++)
+        if(strcmp(nodo->contacto.nombre,nombreDeContactoABorrar)==0)
+        {
+            if(confirmation(1))
+            slist_eliminar(&agenda,index);
+            else printf("Se ha cancelado la accion\n");
+        }
+        return agenda;    
+}
+
+/*6*/
+SList eliminarTodosContactos(SList agenda)
+{
+    if(confirmation(0))
+        slist_destruir(agenda);
+         else printf("Se ha cancelado la accion\n");
+    return NULL;
+}
+
 
 
 int main(int argc, char *argv[]) {
@@ -129,8 +213,10 @@ int main(int argc, char *argv[]) {
     while ((opcion = menu()) != 7) {
         switch(opcion){
             case 1:
+                listaContactos = nuevoContacto(listaContactos);
                 break;
             case 2:
+                muestraContacto(listaContactos);
                 break;
             case 3:
                 buscaContactosNombre(listaContactos);
@@ -139,8 +225,10 @@ int main(int argc, char *argv[]) {
                 buscaContactosTelefono(listaContactos);
                 break;
             case 5:
+                listaContactos = eliminarContactoNombre(listaContactos);
                 break;
             case 6:
+                listaContactos = eliminarTodosContactos(listaContactos);
                 break;
         }
     }
