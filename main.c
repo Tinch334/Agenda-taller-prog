@@ -39,28 +39,28 @@ void ingresarString(char **string) {
 }
 
 
-void imprimirContacto(Contacto contacto) {
+static void imprimirContacto(Contacto contacto) {
     printf("\nNombre: %s - Direccion: %s - Telefono: %s", contacto.nombre, contacto.direccion, contacto.telefono);
-    printf("\nMail: %s - Telegram: %s - Instagram: %s\n\n", contacto.mail, contacto.aliasTelegram, contacto.usuarioInstagram);
+    printf("\nMail: %s - Telegram: %s - Instagram: %s\n", contacto.mail, contacto.aliasTelegram, contacto.usuarioInstagram);
 }
 
-Contacto conseguirContacto(Contacto contactoACrear)
+
+void conseguirContacto(Contacto *contactoACrear)
 {
-    printf("Ingresar nombre del nuevo contacto\n");
-    ingresarString(&(contactoACrear.nombre));
-    printf("Direccion\n");
-    ingresarString(&(contactoACrear.direccion));
-    printf("Telefono\n");
-    ingresarString(&(contactoACrear.telefono));
-    printf("Mail\n");
-    ingresarString(&(contactoACrear.mail));
-    printf("Alias telegram\n");
-    ingresarString(&(contactoACrear.aliasTelegram));
-    printf("ig de la minita\n");
-    ingresarString(&(contactoACrear.usuarioInstagram));
-
-    return contactoACrear;
+    printf("Nombre: ");
+    ingresarString(&(contactoACrear->nombre));
+    printf("\nDireccion: ");
+    ingresarString(&(contactoACrear->direccion));
+    printf("\nTelefono: ");
+    ingresarString(&(contactoACrear->telefono));
+    printf("\nMail: ");
+    ingresarString(&(contactoACrear->mail));
+    printf("\nAlias telegram: ");
+    ingresarString(&(contactoACrear->aliasTelegram));
+    printf("\nInstagram: ");
+    ingresarString(&(contactoACrear->usuarioInstagram));
 }
+
 
 int confirmacion(int opcion)
 {
@@ -85,7 +85,7 @@ int menu() {
 
     borrarPantalla();
 
-    printf("Agenda personal - Juan Ingacio Bertoni - Martin Goni");
+    printf("Agenda personal - Ver:1.0");
     printf("\n1- Ingresar nuevo contacto");
     printf("\n2- Mostrar todos los contactos");
     printf("\n3- Buscar un contacto por nombre");
@@ -100,20 +100,17 @@ int menu() {
     return opcion;
 }
 
+
 /*1*/
-SList nuevoContacto(SList agenda)    
+void nuevoContacto(SList *agenda)    
 {
     borrarPantalla();
 
     Contacto contactoNuevo;
-    contactoNuevo = conseguirContacto(contactoNuevo);
-    agenda = slist_agregar_final(agenda,contactoNuevo);
-
-    printf("Presione enter para volver al menu");
-    getchar();
-
-    return agenda;
+    conseguirContacto(&contactoNuevo);
+    *agenda = slist_agregar_final(*agenda,contactoNuevo);
 }
+
 
 /*2*/
 void muestraContacto(SList agenda)
@@ -122,21 +119,26 @@ void muestraContacto(SList agenda)
     int index=0;
 
     borrarPantalla();
-    printf("\n\nA g e n d a\n\n");
-    for(;nodo!= NULL;nodo = nodo->sig)
-    {
-        printf("Contacto %d:\n",++index);
-        imprimirContacto(nodo->contacto);
-    }
 
-    printf("Presione enter para volver al menu");
+    if (agenda != NULL) {
+        printf("A g e n d a\n");
+
+        slist_recorrer(agenda, imprimirContacto);
+    }
+    else
+        printf("La lista de contactos esta vacia, no hay contactos para mostrar\n\n");
+    
+
+    printf("\nPresione enter para volver al menu");
     getchar();
 }
+
 
 /*3*/
 void buscaContactosNombre(SList listaContactos) {
     SList nodo = listaContactos;
     char *nombreBuscar, aux[255];
+    int encontro = 0;
 
     borrarPantalla();
 
@@ -154,18 +156,25 @@ void buscaContactosNombre(SList listaContactos) {
             nombreBuscar[i] = tolower(nombreBuscar[i]);
         }
 
-        if (strcmp(nombreBuscar, aux) == 0)
+        if (strcmp(nombreBuscar, aux) == 0) {
             imprimirContacto(nodo->contacto);
+            encontro = 1;
+        }
     }
 
-    printf("Presione enter para volver al menu");
+    if (encontro == 0)
+        printf("\nNo se han encontrado contactos con ese nombre\n");
+
+    printf("\nPresione enter para volver al menu");
     getchar();
 }
+
 
 /*4*/
 void buscaContactosTelefono(SList listaContactos) {
     SList nodo = listaContactos;
     char *telefonoBuscar, aux[255];
+    int encontro = 0;
 
     borrarPantalla();
 
@@ -176,77 +185,83 @@ void buscaContactosTelefono(SList listaContactos) {
         strcpy(aux, nodo->contacto.telefono);
         aux[strlen(telefonoBuscar)] = '\0';
 
-        if (strcmp(telefonoBuscar, aux) == 0)
+        if (strcmp(telefonoBuscar, aux) == 0) {
             imprimirContacto(nodo->contacto);
+            encontro = 1;
+        }
     }
 
-    printf("Presione enter para volver al menu");
+    if (encontro == 0)
+        printf("\nNo se han encontrado contactos con ese telefono\n");
+
+    printf("\nPresione enter para volver al menu");
     getchar();
 }
-/*5 falta cubrir el caso si el nombre que se quiere borrar no existe*/
-SList eliminarContactoNombre(SList agenda)
+
+
+/*5*/
+void eliminarContactoNombre(SList *agenda)
 {
-    int index = 0, encontro = 0;
+    int indice, encontro = 0;
     char* nombreDeContactoABorrar;
-    SList nodo = agenda;
+    SList nodo = *agenda;
 
     borrarPantalla();
 
-    printf("Ingresar contacto a borrar\n");
+    printf("Ingresar contacto a borrar: ");
     ingresarString(&nombreDeContactoABorrar);
 
-    for(; nodo != NULL; nodo=nodo->sig,index++)
-        if (strcmp(nodo->contacto.nombre, nombreDeContactoABorrar) == 0)
-        {
-            if (confirmacion(1)) {
-                slist_eliminar(&agenda,index);
-                encontro = 1;
-            }
-            else
-                printf("Se ha cancelado la accion\n");
-        }
+    indice = slist_indice(*agenda, nombreDeContactoABorrar);
     
-    if (encontro == 0)
-        printf("\nNo se ha encontrado el contacto especificado");
+    if (indice == (-1))
+        printf("\nNo se ha encontrado el contacto especificado\n");
+    else {
+        printf("\n");
 
-    printf("Presione enter para volver al menu");
-    getchar();
+        if (confirmacion(1)) 
+            slist_eliminar(&(*agenda), indice);
+        else
+            printf("Se ha cancelado la accion\n");
+    }
 
-    return agenda;    
+    printf("\nPresione enter para volver al menu");
+    getchar();    
 }
 
+
 /*6*/
-SList eliminarTodosContactos(SList agenda)
+void eliminarTodosContactos(SList *agenda)
 {
     borrarPantalla();
 
     if(confirmacion(0))
-        slist_destruir(agenda);
+        slist_destruir(*agenda);
     else printf("Se ha cancelado la accion\n");
 
-    printf("Presione enter para volver al menu");
+    printf("\nPresione enter para volver al menu");
     getchar();
 
-    return NULL;
+    //Como el programa se va a seguir usando luego de vaciar la lista, evitar que siga apuntando a la memoria liberada.
+    *agenda = NULL;
 }
-
 
 
 int main(int argc, char *argv[]) {
     SList listaContactos = slist_crear();
-    Contacto structRoberto = {"Roberto", "Francia 354", "00025", "robertthemail@robert.com", "robertotelegram", "robertoig"};
-    Contacto structMarcos = {"Marcos", "Alem 4720", "558756", "marcosmail@marcos.com", "marcosTelegram", "marcosig"};
-    Contacto structGuadalupe = {"Guadalupe", "Echeverria 12", "5599773355", "guadalupemail@gudalupe.com", "guadalupeTelgram", "guadalupeig"};
-    listaContactos = slist_agregar_inicio(listaContactos, structRoberto);
-    listaContactos = slist_agregar_inicio(listaContactos, structMarcos);
-    listaContactos = slist_agregar_inicio(listaContactos, structGuadalupe);
-
     int opcion;
+
+    //Añadimos a estas personas para que se puedan probar las funciones.
+    Contacto structRoberto = {"Roberto", "Francia 354", "100025", "robertthemail@roberto.com", "robertotelegram", "robertoig"};
+    Contacto structMarcos = {"Marcos", "Alem 4720", "558756", "marcosmail@marcos.com", "marcosTelegram", "marcosig"};
+    Contacto structGuadalupe = {"Guadalupe", "Echeverria 12", "55997755", "guadalupemail@gudalupe.com", "guadalupeTelgram", "guadalupeig"};
+    listaContactos = slist_agregar_final(listaContactos, structRoberto);
+    listaContactos = slist_agregar_final(listaContactos, structMarcos);
+    listaContactos = slist_agregar_final(listaContactos, structGuadalupe);
 
     while ((opcion = menu()) != 7) {
         switch(opcion){
             case 1:
-                listaContactos = nuevoContacto(listaContactos);
+                nuevoContacto(&listaContactos);
                 break;
             case 2:
                 muestraContacto(listaContactos);
@@ -258,10 +273,10 @@ int main(int argc, char *argv[]) {
                 buscaContactosTelefono(listaContactos);
                 break;
             case 5:
-                listaContactos = eliminarContactoNombre(listaContactos);
+                eliminarContactoNombre(&listaContactos);
                 break;
             case 6:
-                listaContactos = eliminarTodosContactos(listaContactos);
+                eliminarTodosContactos(&listaContactos);
                 break;
         }
     }
