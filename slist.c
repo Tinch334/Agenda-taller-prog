@@ -68,21 +68,6 @@ SList slist_agregar_final(SList lista, Contacto dato) {
   return lista;
 }
 
-SList slist_agregar_inicio(SList lista, Contacto dato) {
-  SNodo *nuevoNodo = malloc(sizeof(SNodo));
-
-  nuevoNodo->contacto.nombre = strdup(dato.nombre);
-  nuevoNodo->contacto.direccion = strdup(dato.direccion);
-  nuevoNodo->contacto.telefono = strdup(dato.telefono);
-  nuevoNodo->contacto.mail = strdup(dato.mail);
-  nuevoNodo->contacto.aliasTelegram = strdup(dato.aliasTelegram);
-  nuevoNodo->contacto.usuarioInstagram = strdup(dato.usuarioInstagram);
-
-  nuevoNodo->sig = lista;
-
-  return nuevoNodo;
-}
-
 void slist_recorrer(SList lista, FuncionVisitante visit) {
   for (SNodo *nodo = lista; nodo != NULL; nodo = nodo->sig)
     visit(nodo->contacto);
@@ -135,19 +120,6 @@ int slist_eliminar(SList *lista, int posicion) {
         free(anterior->sig);
         anterior->sig = posterior;
     }
-
-    return 0;
-}
-
-int slist_contiene(SList lista, char *nombre) {
-    SList nodo = lista;
-
-    if (lista == NULL)
-        return 0;
-
-    for (;nodo != NULL; nodo = nodo->sig)
-        if (strcmp(nodo->contacto.nombre, nombre) == 0)
-            return 1;
 
     return 0;
 }
