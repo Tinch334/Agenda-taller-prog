@@ -44,7 +44,7 @@ void imprimirContacto(Contacto contacto) {
     printf("\nMail: %s - Telegram: %s - Instagram: %s\n\n", contacto.mail, contacto.aliasTelegram, contacto.usuarioInstagram);
 }
 
-Contacto askForData(Contacto contactoACrear)
+Contacto conseguirContacto(Contacto contactoACrear)
 {
     printf("Ingresar nombre del nuevo contacto\n");
     ingresarString(&(contactoACrear.nombre));
@@ -62,13 +62,16 @@ Contacto askForData(Contacto contactoACrear)
     return contactoACrear;
 }
 
-int confirmation(int arg)
+int confirmacion(int opcion)
 {
     int conf=0;
-    printf("Esta seguro que quiere eliminar %s? (1=si, 0=no)\n", (arg) ? "el contacto" : "toda la agenda");
+
+    printf("Esta seguro que quiere eliminar %s(1=Si, 0=No)? ", (opcion) ? "el contacto" : "toda la agenda");
     scanf("%d", &conf);
-    while(conf>1 || conf<0){
-        printf("Intentalo nuevamente.\n");
+    printf("\n");
+
+    while(conf > 1 || conf < 0){
+        printf("\nIngrese una opcion valida: ");
         scanf("%d", &conf);
     } 
    
@@ -100,9 +103,15 @@ int menu() {
 /*1*/
 SList nuevoContacto(SList agenda)    
 {
+    borrarPantalla();
+
     Contacto contactoNuevo;
-    contactoNuevo = askForData(contactoNuevo);
+    contactoNuevo = conseguirContacto(contactoNuevo);
     agenda = slist_agregar_final(agenda,contactoNuevo);
+
+    printf("Presione enter para volver al menu");
+    getchar();
+
     return agenda;
 }
 
@@ -111,13 +120,17 @@ void muestraContacto(SList agenda)
 {
     SList nodo = agenda;
     int index=0;
+
+    borrarPantalla();
     printf("\n\nA g e n d a\n\n");
     for(;nodo!= NULL;nodo = nodo->sig)
     {
         printf("Contacto %d:\n",++index);
         imprimirContacto(nodo->contacto);
     }
-    getchar(); /*espera a que ingreses enter*/
+
+    printf("Presione enter para volver al menu");
+    getchar();
 }
 
 /*3*/
@@ -173,27 +186,47 @@ void buscaContactosTelefono(SList listaContactos) {
 /*5 falta cubrir el caso si el nombre que se quiere borrar no existe*/
 SList eliminarContactoNombre(SList agenda)
 {
-    int index=0;
+    int index = 0, encontro = 0;
     char* nombreDeContactoABorrar;
     SList nodo = agenda;
+
+    borrarPantalla();
+
     printf("Ingresar contacto a borrar\n");
     ingresarString(&nombreDeContactoABorrar);
+
     for(; nodo != NULL; nodo=nodo->sig,index++)
-        if(strcmp(nodo->contacto.nombre,nombreDeContactoABorrar)==0)
+        if (strcmp(nodo->contacto.nombre, nombreDeContactoABorrar) == 0)
         {
-            if(confirmation(1))
-            slist_eliminar(&agenda,index);
-            else printf("Se ha cancelado la accion\n");
+            if (confirmacion(1)) {
+                slist_eliminar(&agenda,index);
+                encontro = 1;
+            }
+            else
+                printf("Se ha cancelado la accion\n");
         }
-        return agenda;    
+    
+    if (encontro == 0)
+        printf("\nNo se ha encontrado el contacto especificado");
+
+    printf("Presione enter para volver al menu");
+    getchar();
+
+    return agenda;    
 }
 
 /*6*/
 SList eliminarTodosContactos(SList agenda)
 {
-    if(confirmation(0))
+    borrarPantalla();
+
+    if(confirmacion(0))
         slist_destruir(agenda);
-         else printf("Se ha cancelado la accion\n");
+    else printf("Se ha cancelado la accion\n");
+
+    printf("Presione enter para volver al menu");
+    getchar();
+
     return NULL;
 }
 
