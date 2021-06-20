@@ -67,7 +67,7 @@ int confirmacion(int opcion)
     int conf=0;
 
     printf("Esta seguro que quiere eliminar %s(1=Si, 0=No)? ", (opcion) ? "el contacto" : "toda la agenda");
-    scanf("%d", &conf);
+    scanf("%d%*c", &conf);
     printf("\n");
 
     while(conf > 1 || conf < 0){
@@ -234,15 +234,16 @@ void eliminarTodosContactos(SList *agenda)
 {
     borrarPantalla();
 
-    if(confirmacion(0))
+    if(confirmacion(0) == 1) {
         slist_destruir(*agenda);
-    else printf("Se ha cancelado la accion\n");
+        //Como el programa se va a seguir usando luego de vaciar la lista, evitar que siga apuntando a la memoria liberada.
+        *agenda = NULL;
+    }
+    else
+        printf("Se ha cancelado la accion\n");
 
     printf("\nPresione enter para volver al menu");
     getchar();
-
-    //Como el programa se va a seguir usando luego de vaciar la lista, evitar que siga apuntando a la memoria liberada.
-    *agenda = NULL;
 }
 
 
