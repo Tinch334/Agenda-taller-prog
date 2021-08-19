@@ -3,8 +3,6 @@
     CURSO: 5TO INFO
 */
 
-//DISCLAIMER: todavia no probe casos retorcidos en mis funciones (1,2,5,6)
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,9 +24,9 @@ void borrarPantalla() {
     #if defined(_WIN32) || defined(_WIN64)
         system("cls");
     #endif
-}
+}   
 
-
+//llamar string a una variable que es un puntero a una cadena no sé si es recomendable.
 void ingresarString(char **string) {
     char temp[256];
 
@@ -36,12 +34,13 @@ void ingresarString(char **string) {
 
     (*string) = malloc(sizeof(char) * (strlen(temp) + 1));
     strcpy((*string), temp);
+    //No hay un free de este string en el programa.
 }
 
 
 static void imprimirContacto(Contacto contacto) {
-    printf("\nNombre: %s - Direccion: %s - Telefono: %s", contacto.nombre, contacto.direccion, contacto.telefono);
-    printf("\nMail: %s - Telegram: %s - Instagram: %s\n", contacto.mail, contacto.aliasTelegram, contacto.usuarioInstagram);
+    printf("\n%-10s \t %-s \t %-7s \t %-25s \t %-15s \t %-10s \t \n","Nombre","Direccion","Telefono","Mail","Telegram","Instagram");    
+    printf("%-10s \t %-s \t %-7s \t %-25s \t %-15s \t %-10s \t \n",contacto.nombre,contacto.direccion,contacto.telefono,contacto.mail,contacto.aliasTelegram,contacto.usuarioInstagram);
 }
 
 
@@ -78,6 +77,7 @@ int confirmacion(int opcion)
     return conf;
 }
 
+
 //FUNCIONES DEL TP
 
 int menu() {
@@ -92,7 +92,9 @@ int menu() {
     printf("\n4- Buscar un contacto por telefono");
     printf("\n5- Eliminar un contacto por nombre");
     printf("\n6- Eliminar todos los contactos");
-    printf("\n7- Salir");
+    printf("\n7- Cargar la agenda desde un archivo");
+    printf("\n8- Guardar la agenda en un archivo");
+    printf("\n9- Salir");
 
     printf("\n\nOpcion elegida: ");
     scanf("%d%*c", &opcion);
@@ -108,7 +110,7 @@ void nuevoContacto(SList *agenda)
 
     Contacto contactoNuevo;
     conseguirContacto(&contactoNuevo);
-    *agenda = slist_agregar_final(*agenda,contactoNuevo);
+    *agenda = slist_agregar_final(*agenda, contactoNuevo);
 }
 
 
@@ -135,6 +137,7 @@ void muestraContacto(SList agenda)
 
 
 /*3*/
+//La idea era que los buscar retornen una lista. No que impriman en pantalla.
 void buscaContactosNombre(SList listaContactos) {
     SList nodo = listaContactos;
     char *nombreBuscar, aux[255];
@@ -145,18 +148,21 @@ void buscaContactosNombre(SList listaContactos) {
     printf("Ingrese el nombre a buscar: ");
     ingresarString(&nombreBuscar);
 
-    for(;nodo != NULL; nodo = nodo->sig) {
-        strcpy(aux, nodo->contacto.nombre);
-        aux[strlen(nombreBuscar)] = '\0';
+    //Pasamos ambas strings(El nombre a buscar y el nombre) a minuscula para evitar problemas con capitalizacion.
+    for (int i = 0; i < strlen(nombreBuscar); i++){
+        nombreBuscar[i] = tolower(nombreBuscar[i]);
+    }
 
-        //Se transforma el nombre dado y el nombre de cada uno de los elementos a minuscula para que se pueda revisar la igualdad.
-        for (int i = 0; i < strlen(nombreBuscar); i++) {
+    for(;nodo != NULL; nodo = nodo->sig) {
+    	//Para no hacer esto todo el tiempo, no es mejor guardar todo en minúscula?
+        //Para no modificar el nombre en la struct usamos un buffer auxiliar al pasar el nombre del contacto a minuscula.
+        strcpy(aux, nodo->contacto.nombre);
+
+        for (int i = 0; i < strlen(aux); i++){
             aux[i] = tolower(aux[i]);
-            //Alcanza con hacer esto una sola vez, pero para evitar poner otro for lo hago en el mismo for.
-            nombreBuscar[i] = tolower(nombreBuscar[i]);
         }
 
-        if (strcmp(nombreBuscar, aux) == 0) {
+        if (strstr(aux, nombreBuscar) != NULL) {
             imprimirContacto(nodo->contacto);
             encontro = 1;
         }
@@ -167,10 +173,13 @@ void buscaContactosNombre(SList listaContactos) {
 
     printf("\nPresione enter para volver al menu");
     getchar();
+
+    free(nombreBuscar);
 }
 
 
 /*4*/
+//La idea era que los buscar retornen una lista. No que impriman en pantalla.
 void buscaContactosTelefono(SList listaContactos) {
     SList nodo = listaContactos;
     char *telefonoBuscar, aux[255];
@@ -182,10 +191,7 @@ void buscaContactosTelefono(SList listaContactos) {
     ingresarString(&telefonoBuscar);
 
     for(;nodo != NULL; nodo = nodo->sig) {
-        strcpy(aux, nodo->contacto.telefono);
-        aux[strlen(telefonoBuscar)] = '\0';
-
-        if (strcmp(telefonoBuscar, aux) == 0) {
+        if (strstr(nodo->contacto.telefono, telefonoBuscar) != NULL) {
             imprimirContacto(nodo->contacto);
             encontro = 1;
         }
@@ -196,6 +202,8 @@ void buscaContactosTelefono(SList listaContactos) {
 
     printf("\nPresione enter para volver al menu");
     getchar();
+
+    free(telefonoBuscar);
 }
 
 
@@ -225,7 +233,9 @@ void eliminarContactoNombre(SList *agenda)
     }
 
     printf("\nPresione enter para volver al menu");
-    getchar();    
+    getchar();
+
+    free(nombreDeContactoABorrar);
 }
 
 
@@ -247,6 +257,91 @@ void eliminarTodosContactos(SList *agenda)
 }
 
 
+/*7*/
+void cargarAgenda(SList *agenda)
+{
+    //Antes de poder añadir elementos a la lista la vaciamos para cargar la agenda desde cero.
+    slist_destruir(*agenda);
+    *agenda = NULL;
+
+    char* nombreArchivo;
+    Contacto contactoLeido;
+
+    borrarPantalla();
+
+    printf("Ingrese el nombre del archivo del cual cargar la agenda: ");
+    ingresarString(&nombreArchivo);
+
+    //Usamos los buffers para solo alocar la memoria necesaria en la agenda.
+    char bufNombre[255], bufTelefono[255], bufMail[255], bufDireccion[255], bufTelegram[255], bufInstagram[255];
+
+    FILE* arch = fopen(nombreArchivo, "r");
+
+    if (arch != NULL) {
+        /*
+        En el archivo, los contactos estan almacenados uno por linea, con todos los campos juntos separados por comas. Forma de un archivo:
+        Roberto,100025,robertthemail@roberto.com,Francia 354,robertotelegram,robertoig
+        Marcos,558756,marcosmail@marcos.com,Alem 4720,marcosTelegram,marcosig
+        Guadalupe,55997755,guadalupemail@gudalupe.com,Echeverria 12,guadalupeTelgram,guadalupeig
+        */
+        while (fscanf(arch, "%[^,],%[^,],%[^,],%[^,],%[^,],%[^\n]%*c", bufNombre, bufTelefono, bufMail, bufDireccion, bufTelegram, bufInstagram) != EOF) {
+            contactoLeido.nombre = strdup(bufNombre);
+            contactoLeido.telefono = strdup(bufTelefono);
+            contactoLeido.mail = strdup(bufMail);
+            contactoLeido.direccion = strdup(bufDireccion);
+            contactoLeido.aliasTelegram = strdup(bufTelegram);
+            contactoLeido.usuarioInstagram = strdup(bufInstagram);
+
+            *agenda = slist_agregar_final(*agenda, contactoLeido);
+        }
+
+        if (fclose(arch) == 0)
+            printf("\nEl archivo se cargo con exito\n");
+        else
+            printf("\nOcurrio un problema con el archivo especificado, por favor intenta de nuevo\n");
+    }
+    else        
+        printf("\nOcurrio un problema con el archivo especificado, por favor intenta de nuevo\n");
+
+    printf("\nPresione enter para volver al menu");
+    getchar();
+
+    free(nombreArchivo);
+}
+
+/*8*/
+void guardarAgenda(SList agenda)
+{
+    SList nodo = agenda;
+    char* nombreArchivo;
+
+    borrarPantalla();
+
+    printf("Ingrese el nombre del archivo para guardar la agenda: ");
+    ingresarString(&nombreArchivo);
+
+    FILE* arch = fopen(nombreArchivo, "w");
+
+    if (arch != NULL) {
+        for(;nodo != NULL; nodo = nodo->sig)
+            //Guardamos un contacto por linea con sus datos separados por espacios.
+            fprintf(arch, "%s,%s,%s,%s,%s,%s\n", nodo->contacto.nombre, nodo->contacto.telefono, nodo->contacto.mail, nodo->contacto.direccion, nodo->contacto.aliasTelegram, nodo->contacto.usuarioInstagram);
+
+        if (fclose(arch) == 0)
+            printf("\nEl archivo se guardo con exito\n");
+        else
+            printf("\nOcurrio un problema al guardar el archivo especificado, por favor intenta de nuevo\n");
+    }
+    else        
+        printf("\nOcurrio un problema con el archivo especificado, por favor intenta de nuevo\n");
+
+    printf("\nPresione enter para volver al menu");
+    getchar();
+
+    free(nombreArchivo);
+}
+
+
 int main(int argc, char *argv[]) {
     SList listaContactos = slist_crear();
     int opcion;
@@ -259,7 +354,7 @@ int main(int argc, char *argv[]) {
     listaContactos = slist_agregar_final(listaContactos, structMarcos);
     listaContactos = slist_agregar_final(listaContactos, structGuadalupe);
 
-    while ((opcion = menu()) != 7) {
+    while ((opcion = menu()) != 9) {
         switch(opcion){
             case 1:
                 nuevoContacto(&listaContactos);
@@ -278,6 +373,12 @@ int main(int argc, char *argv[]) {
                 break;
             case 6:
                 eliminarTodosContactos(&listaContactos);
+                break;
+            case 7:
+            cargarAgenda(&listaContactos);
+                break;
+            case 8:
+                guardarAgenda(listaContactos);
                 break;
         }
     }

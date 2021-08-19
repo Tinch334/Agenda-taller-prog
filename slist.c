@@ -46,7 +46,7 @@ int slist_vacia(SList lista) {
 
 SList slist_agregar_final(SList lista, Contacto dato) {
   SNodo *nuevoNodo = malloc(sizeof(SNodo));
-
+  //no sería conveniente tener una función que clone un contacto y retorne dicho contado?
   //"strdup" es una funcion de "string.h" que copia la string provista devolviendo un puntero a la misma, evitando tener que asignar memoria manualmente.
   nuevoNodo->contacto.nombre = strdup(dato.nombre);
   nuevoNodo->contacto.direccion = strdup(dato.direccion);
@@ -96,7 +96,10 @@ int slist_eliminar(SList *lista, int posicion) {
 
         borrar_struct(nodo->contacto);
         free(nodo);
+        //no era mejor poner un return acá?
     }
+    //por qué hago el caso último separado de los otros casos? borrar el último es lo mismo que borrar cualquier nodo intermedio.
+    //su siguiente es NULL.
     else if (posicion == slist_longitud(*lista)) {
         SList nodo = *lista;
 
@@ -124,15 +127,15 @@ int slist_eliminar(SList *lista, int posicion) {
     return 0;
 }
 
+//Recorro la lista buscando donde está el nombre a eliminar y luego llamo a una función que se desplaza hasta esa posición. 
+//No se podía hacer todo junto?
 int slist_indice(SList lista, char *nombre) {
     SList nodo = lista;
+    int ret = -1;
 
-    if (lista == NULL)
-        return -1;
-
-    for (int i = 0; nodo != NULL; nodo = nodo->sig, i++)
+    for (int i = 0; nodo != NULL && strcmp(nodo->contacto.nombre, nombre) == 0; nodo = nodo->sig, i++)
         if (strcmp(nodo->contacto.nombre, nombre) == 0)
-            return i;
+            ret = i;
 
-    return -1;
+    return ret;
 }
